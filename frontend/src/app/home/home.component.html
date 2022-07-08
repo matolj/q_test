@@ -1,0 +1,35 @@
+﻿<div class="card mt-4">
+    <h4 class="card-header">Home</h4>
+    <div class="card-body">
+        <p>You're logged in with Angular 10 & JWT!!</p>
+        <p>Your role is: <strong>{{user.role}}</strong>.</p>
+    </div>
+</div>
+
+<h2 align="center" style="padding-top: 10px;" *ngIf="books.length > 0 && !loadingBooks" class="info-text mat-body-1">Books</h2>
+<table class="table" *ngIf="books.length > 0">
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Content</th>
+      <th scope="col">Author</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let book of books">
+      <td>{{ book.name }} </td>
+      <td>{{ book.content }}</td>
+      <td>{{ book.author.firstName }} {{ book.author.lastName }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<mat-paginator [length]="totalBooks"
+              [pageSize]="booksPerPage"
+              [pageSizeOptions]="pageSizeOptions"
+              (page) = "onChangedPage($event)"
+              *ngIf="books.length > 0">
+</mat-paginator>
+
+<p align="center" style="padding-top: 10px;" *ngIf="books.length <= 0 && !loadingBooks" class="info-text mat-body-1">No books added yet!</p>
+
