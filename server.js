@@ -15,9 +15,11 @@ app.use('/authors', require('./backend/routes/authors'));
 
 // start server
 app.listen(process.env.NODE_ENV === 'production' ? 80 : 4000, function () {
-    console.log('Server listening! ');
+    //console.log('Server listening! ');
 });
 
 databaseConfig.connectDatabase()
+
+module.exports = app; // for testing
 
 

@@ -4,7 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "mocha --timeout 10000"
   },
   "author": "Mate Oljica",
   "license": "ISC",
@@ -17,5 +18,10 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.4.3",
     "rootpath": "^0.1.2"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-http": "^2.0.1",
+    "mocha": "^3.5.0"
   }
 }

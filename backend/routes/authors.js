@@ -5,7 +5,7 @@ const Book = require('../models/Book')
 const authorController = require('../controllers/author')
 const isAuthor = require('../helpers/isAuthor')
 
-router.get('/', checkAuth, (req, res, next) => {
+router.get('/', (req, res, next) => {
     const pageSize = +req.query.pagesize;
     const currentPage = +req.query.page;
     const getBooksQuerry = Book.find({isActive: true}).populate('author');

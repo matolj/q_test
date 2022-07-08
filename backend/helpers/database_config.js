@@ -3,7 +3,7 @@ const connectDB = 'mongodb+srv://matolj:test@cluster0.ylfzucb.mongodb.net/?retry
 
 const connectDatabase = () => {
     mongoose.connect(connectDB,{ useNewUrlParser: true, useUnifiedTopology:true }).then(()=>{
-        console.log('Database connected!');
+        //console.log('Database connected!');
     }).catch((err)=>{
         throw new Error({message: 'Something went wrong with database config!'})
     })
