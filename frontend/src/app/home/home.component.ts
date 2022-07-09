@@ -1,12 +1,13 @@
-﻿import { Component } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit } from '@angular/core';
 import { first } from 'rxjs/operators';
 import { PageEvent } from '@angular/material/paginator';
 
 import { User } from '@app/_models';
 import { UserService, AuthenticationService, AuthorService } from '@app/_services';
+import { Subscription } from 'rxjs';
 
 @Component({ templateUrl: 'home.component.html' })
-export class HomeComponent {
+export class HomeComponent implements OnInit, OnDestroy {
     loading = false;
     user: User;
     userFromApi: User;
@@ -18,6 +19,7 @@ export class HomeComponent {
     currentPage = 1;
     pageSizeOptions = [1,2,5,10];
     displayedColumns: string[] = ['name', 'content', 'author'];
+    private booksSub: Subscription;
 
 
     constructor(
@@ -30,25 +32,32 @@ export class HomeComponent {
 
     ngOnInit() {
         this.loading = true;
+
         this.userService.getById(this.user.id).pipe(first()).subscribe(user => {
             this.loading = false;
             this.userFromApi = user;
         });
 
         this.loadingBooks = true;
-        this.authorService.getAll(this.booksPerPage, this.currentPage).pipe(first()).subscribe(data => {
-            this.loadingBooks = false;
-            this.books = data.books;
-            this.totalBooks= data.maxBooks;
+
+        this.authorService.getAll(this.booksPerPage, this.currentPage);
+
+        this.booksSub = this.authorService.getBookUpdateListener()
+        .subscribe((bookData: { books: any, booksCount:number })=>{
+          this.loadingBooks = false;
+          this.books = bookData.books;
+          this.totalBooks = bookData.booksCount;
         });
     }
 
     onChangedPage(pageData: PageEvent){
+      this.loadingBooks = true;
       this.currentPage = pageData.pageIndex + 1;
       this.booksPerPage = pageData.pageSize;
-      this.authorService.getAll(this.booksPerPage, this.currentPage).pipe(first()).subscribe(data => {
-          this.books = data.books;
-          this.totalBooks =  data.maxBooks;
-      });
+      this.authorService.getAll(this.booksPerPage, this.currentPage);
+    }
+
+    ngOnDestroy(){
+      this.booksSub.unsubscribe();
     }
 }

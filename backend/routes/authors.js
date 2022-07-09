@@ -78,6 +78,7 @@ router.post('/write-book', checkAuth, async (req, res, next) => {
 router.post('/edit-book/:id', checkAuth, isAuthor, async (req, res, next) => {
 
   try{
+  
     const bookUpdate = await authorController.updateBook(req.params.id, req.body)
     
     if(bookUpdate){

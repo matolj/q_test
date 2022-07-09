@@ -1,12 +1,13 @@
-﻿import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit } from '@angular/core';
 import { first } from 'rxjs/operators';
 import { PageEvent } from '@angular/material/paginator';
 
 import { AuthorService } from '@app/_services';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 @Component({ templateUrl: 'author.component.html' })
-export class AuthorComponent implements OnInit {
+export class AuthorComponent implements OnInit, OnDestroy{
     loading = false;
     writeBookForm: FormGroup;
     isCollapsed = false;
@@ -22,6 +23,7 @@ export class AuthorComponent implements OnInit {
     booksPerPage = 5;
     currentPage = 1;
     pageSizeOptions = [1,2,5,10];
+    private myBooksSub: Subscription;
 
     constructor(
       private authorService: AuthorService,
@@ -29,17 +31,20 @@ export class AuthorComponent implements OnInit {
       ) { }
 
     ngOnInit() {
-      this.writeBookForm = this.formBuilder.group({
-        name: ['', Validators.required],
-        content: ['', Validators.required]
-      });
-
-      this.loadingBooks = true;
-        this.authorService.getMyBooks(this.booksPerPage, this.currentPage).pipe(first()).subscribe(data => {
-            this.loadingBooks = false;
-            this.books = data.books;
-            this.totalBooks= data.maxBooks;
+        this.writeBookForm = this.formBuilder.group({
+          name: ['', Validators.required],
+          content: ['', Validators.required]
         });
+
+        this.loadingBooks = true;
+        this.authorService.getMyBooks(this.booksPerPage, this.currentPage);
+        this.myBooksSub = this.authorService.getMyBookUpdateListener()
+        .subscribe((bookData: { books: any, booksCount:number })=>{
+          this.loadingBooks = false;
+          this.books = bookData.books;
+          this.totalBooks = bookData.booksCount;
+        });
+
     }
 
     onSubmit() {
@@ -57,12 +62,9 @@ export class AuthorComponent implements OnInit {
         .subscribe({
             next: () => {
               this.loading = false;
-              this.authorService.getMyBooks(this.booksPerPage, this.currentPage).pipe(first()).subscribe(data => {
+              this.authorService.getMyBooks(this.booksPerPage, this.currentPage)
                 this.loadingBooks = false;
-                this.books = data.books;
-                this.totalBooks =  data.maxBooks;
                 this.isCollapsed = !this.isCollapsed;
-              });
             },
             error: error => {
                 this.error = error;
@@ -74,13 +76,10 @@ export class AuthorComponent implements OnInit {
           .pipe(first())
           .subscribe({
               next: () => {
-                this.loading = false;
-                this.authorService.getMyBooks(this.booksPerPage, this.currentPage).pipe(first()).subscribe(data => {
+                  this.loading = false;
+                  this.authorService.getMyBooks(this.booksPerPage, this.currentPage)
                   this.loadingBooks = false;
-                  this.books = data.books;
-                  this.totalBooks =  data.maxBooks;
                   this.isCollapsed = !this.isCollapsed;
-                });
               },
               error: error => {
                   this.error = error;
@@ -97,41 +96,37 @@ export class AuthorComponent implements OnInit {
     onChangedPage(pageData: PageEvent){
       this.currentPage = pageData.pageIndex + 1;
       this.booksPerPage = pageData.pageSize;
-      this.authorService.getMyBooks(this.booksPerPage, this.currentPage).pipe(first()).subscribe(data => {
-          this.books = data.books;
-          this.totalBooks =  data.maxBooks;
-      });
+      this.authorService.getMyBooks(this.booksPerPage, this.currentPage);
     }
 
     get f() { return this.writeBookForm.controls; }
 
     editBook(book): void {
+
       this.isCollapsed = !this.isCollapsed;
       this.editForm = true;
 
       this.writeBookForm.patchValue({
         name: book.name,
-        content: book.content,
-
+        content: book.content
       });
 
-      this.bookId = book._id;
+      this.bookId = book.id;
 
     }
 
     deleteBook(id): void {
-      this.authorService.deleteBook(id).pipe(first()).subscribe({
-        next: () => {
-            this.authorService.getMyBooks(this.booksPerPage, this.currentPage).pipe(first()).subscribe(data => {
-              this.books = data.books;
-              this.totalBooks =  data.maxBooks;
-            });
-        },
-        error: error => {
-                  this.error = error;
-              }
-   });
 
+      this.loading = true;
+      this.authorService.deleteBook(id).subscribe(() =>{
+            this.authorService.getMyBooks(this.booksPerPage, this.currentPage);
+        }, () =>{
+          this.loading = false;
+        })
+    }
+
+    ngOnDestroy(){
+      this.myBooksSub.unsubscribe();
     }
 
 }
