@@ -4,6 +4,7 @@ const checkAuth = require('../helpers/authorize');
 const Book = require('../models/Book')
 const authorController = require('../controllers/author')
 const isAuthor = require('../helpers/isAuthor')
+const isActiveAuthor = require('../helpers/isActiveAuthor')
 
 router.get('/', (req, res, next) => {
     const pageSize = +req.query.pagesize;
@@ -31,7 +32,7 @@ router.get('/', (req, res, next) => {
    
 });
 
-router.get('/my-books', checkAuth, (req, res, next) => {
+router.get('/my-books', checkAuth, isActiveAuthor, (req, res, next) => {
 
   const userId = req.user.sub;
   const pageSize = +req.query.pagesize;
@@ -59,7 +60,7 @@ router.get('/my-books', checkAuth, (req, res, next) => {
    
 });
 
-router.post('/write-book', checkAuth, async (req, res, next) => {
+router.post('/write-book', checkAuth, isActiveAuthor, async (req, res, next) => {
 
   try{
     const writeBook =await authorController.writeBook(req.body, req.user.sub)
@@ -75,7 +76,7 @@ router.post('/write-book', checkAuth, async (req, res, next) => {
  
 });
 
-router.post('/edit-book/:id', checkAuth, isAuthor, async (req, res, next) => {
+router.post('/edit-book/:id', checkAuth, isAuthor, isActiveAuthor, async (req, res, next) => {
 
   try{
   
@@ -95,7 +96,7 @@ router.post('/edit-book/:id', checkAuth, isAuthor, async (req, res, next) => {
 
 });
 
-router.delete('/delete-book/:id', checkAuth, isAuthor, async (req, res, next) => {
+router.delete('/delete-book/:id', checkAuth, isAuthor, isActiveAuthor, async (req, res, next) => {
 
   try{
       const deletedBook = await authorController.deleteBookById(req.params.id)
